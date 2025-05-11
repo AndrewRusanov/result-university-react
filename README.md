@@ -1,54 +1,101 @@
-# React + TypeScript + Vite
+# Задание №2
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Постановка задачи
+ Реализуйте хук `useLocalStorage()`, который можно будет использовать следующим образом:
 
-Currently, two official plugins are available:
+ ```jsx
+import { useLocalStorage } from './useLocalStorage';
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+function Demo() {
+  const [value, { setItem, removeItem }] = useLocalStorage('some-key');
 
-## Expanding the ESLint configuration
+  return (
+    <div>
+      <p>Значение из LocalStorage: {value}</p>
+      <div>
+        <button onClick={() => setItem('new storage value')}>Задать значение</button>
+        <button onClick={() => removeItem()}>Удалить значение</button>
+      </div>
+    </div>
+  );
+}
+ ```
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+ Кроме того, необходимо добавить типизацию хука:
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
+```typescript
+type LocalStorageSetValue = string;
+type LocalStorageReturnValue = LocalStorageSetValue | null;
+
+type UseLocalStorage = (key: string) => [
+  value: LocalStorageReturnValue,
+  {
+    setItem: (value: LocalStorageSetValue) => void;
+    removeItem: () => void;
   },
-})
+];
 ```
+Здесь мы учитываем, что в `LocalStorage` значения всегда хранятся в виде строк. Однако в случае, если значение по ключу `key` не найдено, то вернется `null`. 
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+ ## Решение
+В качестве входного параметра принимает ключ `key`, по которому находит и изменяет данные в `localStorage`.
+В качестве выходных параметров хук возвращает:
+- `value` - значение из `localStorage`, а если его нет, то `null`;
+- `setItem` - Функцию, которая добавляет новый элемент в `localStorage`;
+- `removeItem` - Функцию, которая очищает в `localStorage` элемент `key`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+ ```tsx
+function getValueStorage(key: string): LocalStorageReturnValue {
+  const savedValue = localStorage.getItem(key);
+  if (!savedValue) {
+    return null;
+  }
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+  return savedValue;
+}
+
+const useLocalStorage: UseLocalStorage = (key) => {
+  const [value, setValue] = useState<LocalStorageReturnValue>(() =>
+    getValueStorage(key)
+  );
+
+  const setItem = (value: LocalStorageSetValue) => {
+    localStorage.setItem(key, JSON.stringify(value));
+    setValue(value);
+  };
+
+  const removeItem = () => {
+    localStorage.removeItem(key);
+    setValue(null);
+  };
+
+  return [value, { setItem, removeItem }];
+};
+
+export { useLocalStorage };
+ ```
+
+ ## Пример использования
+
+ ```jsx
+const UseLocalStorageDemo = () => {
+  const [value, { setItem, removeItem }] = useLocalStorage("some-key");
+
+  return (
+    <div className="UseLocalStorageDemo_container">
+      <h2 className="container_title">UseLocalStorageDemo</h2>
+      <div className="container_content">
+        <p>Значение из LocalStorage: {value}</p>
+        <div className="container_btns">
+          <button onClick={() => setItem("new storage value")} className="btn">
+            Задать значение
+          </button>
+          <button onClick={() => removeItem()} className="btn">
+            Удалить значение
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+ ```
