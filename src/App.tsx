@@ -1,5 +1,6 @@
 import './App.css'
 import UseFetchDemo from './components/UseFetchDemo/UseFetchDemo'
+import UseHoverDemo from './components/UseHoverDemo/UseHoverDemo'
 import UseLocalStorageDemo from './components/UseLocalStorageDemo/UseLocalStorageDemo'
 
 function App() {
@@ -7,6 +8,7 @@ function App() {
     <div className='content'>
       <UseFetchDemo />
       <UseLocalStorageDemo />
+      <UseHoverDemo />
     </div>
   )
 }
