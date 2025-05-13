@@ -325,3 +325,75 @@ const UseHoverDemo = () => {
   )
 }
 ```
+
+# Задание №4
+
+## Постановка задачи
+
+Реализуйте хук `useViewportSize()`, который можно будет использовать следующим образом:
+
+```jsx
+import { useViewportSize } from '@mantine/hooks'
+
+function Demo() {
+  const { height, width } = useViewportSize()
+
+  return (
+    <>
+      Width: {width}, height: {height}
+    </>
+  )
+}
+```
+
+При изменении размеров `viewport` значения `height` и `width` автоматически обновляются.
+
+## Решение
+
+В качестве выходных параметров хук возвращает:
+
+- `height` - высоту `viewport` в `px`;
+- `width` - ширину `viewport` в `px`.
+
+```tsx
+export function useViewportSize() {
+  const [width, setWidth] = useState<number>(window.innerWidth)
+  const [height, setHeight] = useState<number>(window.innerHeight)
+
+  useEffect(() => {
+    const handleGetWindowSize = () => {
+      const windowWidth = window.innerWidth
+      const windowHeight = window.innerHeight
+
+      setHeight(windowHeight)
+      setWidth(windowWidth)
+    }
+
+    window.addEventListener('resize', handleGetWindowSize)
+
+    return () => {
+      window.removeEventListener('resize', handleGetWindowSize)
+    }
+  }, [])
+
+  return { width, height }
+}
+```
+
+## Пример использования
+
+```jsx
+const UseViewportSizeDemo = () => {
+  const { width, height } = useViewportSize()
+
+  return (
+    <div className='UseLocalStorageDemo_container'>
+      <h1 className='container_title'>UseViewportSizeDemo</h1>
+      <div className='container_content'>
+        <span>Ширина экрана: {width}</span>
+        <span>Высота экрана: {height}</span>
+      </div>
+    </div>
+  )
+}
+```
