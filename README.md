@@ -1,54 +1,137 @@
-# React + TypeScript + Vite
+# Задание №1
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Постановка задачи
+ Реализуйте хук `useFetch()`, который можно будет использовать следующим образом:
 
-Currently, two official plugins are available:
+ ```jsx
+import { useFetch } from './useFetch';
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+function Demo() {
+  const {
+    data,
+    isLoading,
+    error,
+    refetch
+  } = useFetch('https://jsonplaceholder.typicode.com/posts');
+  
+  return (
+    <div>
+      <div>
+        <button onClick={() => refetch({
+          params: {
+            _limit: 3
+          }
+        })}>
+          Перезапросить
+        </button>
+      </div>
+      {isLoading && 'Загрузка...'}
+      {error && 'Произошла ошибка'}
+      {data && !isLoading && data.map(item => <div key={item.id}>{item.title}</div>) }
+    </div>
+  );
+}
+ ```
 
-## Expanding the ESLint configuration
+ ## Решение
+ Интерфейс `PostResponseModel`:
+ ```typescript
+export interface PostResponseModel {
+  userId: string;
+  id: number;
+  title: string;
+  body: string;
+}
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+ ```
+Хук в качестве входных параметров принимает `url`, по которому необходимо выполнить запрос за данными. В качестве выходных параметров хук возвращает:
+- `data` - данные, полученные с ресурса;
+- `isLoading` - состояние обработки запроса (`true/false`);
+- `error` - возможная ошибка в виде строки;
+- `refetch` - функция, которая позволяет произвести запрос к ресурсу ещё раз (возможно, с параметрами).
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
+ ```tsx
+import { useCallback, useEffect, useState } from "react";
+import type { PostResponseModel } from "../types/useFetchTypes";
+
+interface FetchOptions {
+  params?: Record<string, any>;
+}
+
+const getData = async (url: string): Promise<PostResponseModel[]> => {
+  const response = await fetch(url);
+  return await response.json();
+};
+
+export function useFetch(url: string) {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<PostResponseModel[] | null>(null);
+
+  const refetch = useCallback(
+    async (options?: FetchOptions) => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const params = options?.params
+          ? `?${new URLSearchParams(options.params).toString()}`
+          : "";
+
+        const result = await getData(`${url}${params}`);
+        setData(result);
+      } catch (error) {
+        setError(`${error}`);
+      } finally {
+        setIsLoading(false);
+      }
     },
-  },
-})
-```
+    [url]
+  );
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+  return { data, isLoading, error, refetch };
+}
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+ ```
+
+ ## Пример использования
+
+ ```jsx
+const DEMO_URL = "https://jsonplaceholder.typicode.com/posts";
+
+const UseFetchDemo = () => {
+  const { data, refetch, isLoading, error } = useFetch(DEMO_URL);
+  return (
+    <div className="UseFetchDemo_container">
+      <h2 className="container_title">UseFetchDemo</h2>
+      <button
+        onClick={() =>
+          refetch({
+            params: {
+              _limit: 3,
+            },
+          })
+        }
+        className="container_btn"
+      >
+        Перезапросить
+      </button>
+
+      {isLoading && "Загрузка..."}
+      {error && "Произошла ошибка"}
+
+      {data && !isLoading && (
+        <div className="container_content">
+          {data.map((item) => (
+            <div key={item.id}>{item.title}</div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+ ```
