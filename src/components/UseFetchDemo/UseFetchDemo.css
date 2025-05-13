@@ -4,6 +4,8 @@
   align-items: center;
   width: 100%;
   gap: 12px;
+  padding: 0 0 12px;
+  border-bottom: 1px solid #00aeef;
 }
 
 .container_title {

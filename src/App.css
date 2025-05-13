@@ -3,8 +3,9 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  gap: 24px;
   align-items: center;
   background-color: #00395d;
   color: bisque;
-  font-family: "Courier New", Courier, monospace;
+  font-family: 'Courier New', Courier, monospace;
 }
