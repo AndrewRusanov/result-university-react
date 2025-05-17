@@ -397,3 +397,98 @@ const UseViewportSizeDemo = () => {
   )
 }
 ```
+
+# Дополнительное задание №1
+
+## Постановка задачи
+
+Реализуйте хук `useWindowScroll()`, который можно будет использовать следующим образом:
+
+```jsx
+import { useWindowScroll } from './useWindowScroll'
+
+function Demo() {
+  const [scroll, scrollTo] = useWindowScroll()
+
+  return (
+    <div>
+      <p>
+        Scroll position x: {scroll.x}, y: {scroll.y}
+      </p>
+      <button onClick={() => scrollTo({ y: 0 })}>Scroll to top</button>
+    </div>
+  )
+}
+```
+
+## Решение
+
+В качестве выходных параметров хук возвращает:
+
+- `scroll` - Объект с текущими данными скролла;
+- `scrollTo(options: ScrollToOptions)` - Функцию, которая производит скролл к заданым координатам .
+
+```typescript
+export interface Scroll {
+  y: number
+  x: number
+}
+
+export interface ScrollToOptions {
+  x?: number
+  y?: number
+}
+
+export type UseWindowScroll = [Scroll, (options: ScrollToOptions) => void]
+```
+
+```tsx
+const initialScroll: Scroll = {
+  y: 0,
+  x: 0,
+}
+
+const useWindowScroll = (): UseWindowScroll => {
+  const [scroll, setScroll] = useState<Scroll>(initialScroll)
+
+  const handleGetScroll = () => {
+    const newX = window.scrollX
+    const newY = window.scrollY
+
+    setScroll({ x: newX, y: newY })
+  }
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleGetScroll)
+
+    return () => {
+      window.removeEventListener('scroll', handleGetScroll)
+    }
+  }, [])
+
+  const scrollTo = (scrollTo: ScrollToOptions) => {
+    window.scrollTo({ top: scrollTo.y, left: scrollTo.x })
+  }
+
+  return [scroll, scrollTo]
+}
+```
+
+## Пример использования
+
+```jsx
+const UseWindowScrollDemo = () => {
+  const [scroll, scrollTo] = useWindowScroll()
+  return (
+    <div className='UseWindowScrollDemo_container'>
+      <h3 className='container_title'>UseWindowScrollDemo</h3>
+      <div>
+        <p>
+          Scroll position x: {scroll.x}, y: {scroll.y}
+        </p>
+        <button onClick={() => scrollTo({ y: 0 })}>Scroll to top</button>
+      </div>
+    </div>
+  )
+}
+```
