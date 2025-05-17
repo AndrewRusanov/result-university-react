@@ -3,6 +3,7 @@ import UseFetchDemo from './components/UseFetchDemo/UseFetchDemo'
 import UseHoverDemo from './components/UseHoverDemo/UseHoverDemo'
 import UseLocalStorageDemo from './components/UseLocalStorageDemo/UseLocalStorageDemo'
 import UseViewportSizeDemo from './components/UseViewportSizeDemo/UseViewportSizeDemo'
+import UseWindowScrollDemo from './components/UseWindowScrollDemo/UseWindowScrollDemo'
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       <UseLocalStorageDemo />
       <UseHoverDemo />
       <UseViewportSizeDemo />
+      <UseWindowScrollDemo />
     </div>
   )
 }
