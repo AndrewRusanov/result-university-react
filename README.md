@@ -397,3 +397,89 @@ const UseViewportSizeDemo = () => {
   )
 }
 ```
+
+# Дополнительное задание №2
+
+## Постановка задачи
+
+В этом задании необходимо усложнить хук `useToggle()`. Теперь он должен принимать массив значений, которые будут переключаться по порядку. Если ничего не передавать то будет переключать между `true` и `false`. Хук может использоваться следующим образом:
+
+```jsx
+import { useToggle } from './useToggle'
+
+function Demo() {
+  const [value, toggle] = useToggle(['blue', 'orange', 'cyan', 'teal'])
+
+  return <button onClick={() => toggle()}>{value}</button>
+}
+
+// Еще примеры использования
+
+const [value, toggle] = useToggle(['light', 'dark'])
+
+toggle() // -> value === 'light'
+toggle() // -> value === 'dark'
+
+// Так же можно передать конкретное значение и тогда
+// value станет одним из значений
+toggle('dark') // -> value === 'dark'
+```
+
+**Подсказка**: для реализации попробуйте использовать хук `useReducer()`.
+
+## Решение
+
+В качестве выходных параметров хук возвращает:
+
+- `value` - Текущее состояние;
+- `toggle` - Функицю-переключатель.
+
+```tsx
+function useToggle(options: string[] = ['false', 'true']) {
+  const [[currentIndex], dispatch] = useReducer(reducer, [0])
+
+  function reducer(state: [number], action: string | undefined): [number] {
+    const [currentIndex] = state
+
+    if (action !== undefined) {
+      const newIndex = options.indexOf(action)
+      if (newIndex === -1) return state
+      return [newIndex]
+    }
+
+    const newIndex = (currentIndex + 1) % options.length
+    return [newIndex]
+  }
+
+  function toggle(value?: string) {
+    dispatch(value)
+  }
+
+  const value = options[currentIndex]
+  return [value, toggle] as const
+}
+```
+
+## Пример использования
+
+```jsx
+const UseToggleDemo = () => {
+  const [value, toggle] = useToggle()
+  const [color, toggleColor] = useToggle(['green', 'blue', 'red', 'black'])
+
+  return (
+    <div className='UseToggleDemo_container'>
+      <h2 className='container_title'>UseToggleDemo</h2>
+      <div className='container_content'>
+        <button onClick={() => toggle()}>Value: {value.toString()}</button>
+      </div>
+      <div className='container_content'>
+        <button onClick={() => toggleColor()}>Цвет: {color}</button>
+        <button onClick={() => toggleColor('black')}>
+          Установить чёрный цвет
+        </button>
+      </div>
+    </div>
+  )
+}
+```
